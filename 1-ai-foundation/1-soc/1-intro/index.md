@@ -6,7 +6,7 @@ tags: [
     "AI HW",
 ]
 ShowToc: true
-weight: q
+weight: 1
 draft: false
 ---
 
@@ -42,6 +42,7 @@ T - Jetson devices (Jetson Orion Nano Developer Kit)
 |**Product**|Jetson Orin Nano module|Jetson Orion Nano Developer Kit|
 
 A
+
 https://developer.nvidia.com/buy-jetson?product=all&location=CN
 
 
@@ -86,7 +87,9 @@ T - Jetson software (L4T, jetpack SDK)
 
 
 A
+
 - https://docs.nvidia.com/jetson/
+
 1.Install Jetson Linux
 ```bash
 # 1. Download the latest Jetson Linux release package and sample file system for your Jetson developer kit
