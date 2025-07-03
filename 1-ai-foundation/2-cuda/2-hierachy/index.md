@@ -6,7 +6,7 @@ tags: [
     "CUDA",
 ]
 ShowToc: true
-weight: 1
+weight: 2
 draft: false
 ---
 
@@ -162,12 +162,17 @@ Threads use their unique thread index to work on disjoint data
 ## Memory Hierachy
 ### Logical thread corresponding Memory hierarchy
 Per-thread  
-![alt text](images/m-t.png)
-![alt text](images/m-t-h.png)
+<p float="left">
+  <img src="images/m-t.png" width="45%" />
+  <img src="images/m-t-h.png" width="45%" />
+</p>
 
 Per-block
-![alt text](images/m-b.png)
-![alt text](images/m-b-h.png)
+<p float="left">
+  <img src="images/m-b.png" width="45%" />
+  <img src="images/m-b-h.png" width="45%" />
+</p>
+
 ```c
 // 共享内存，仅限 Block 内访问
 __shared__ float sharedData[BLOCK_SIZE];
@@ -175,8 +180,11 @@ sharedData[i];
 ```
 
 Per-grid
-![alt text](images/m-g.png)
-![alt text](images/m-g-h.png)
+<p float="left">
+  <img src="images/m-g.png" width="45%" />
+  <img src="images/m-g-h.png" width="45%" />
+</p>
+
 ```c
 // 在设备上分配内存
 cudaMalloc(void** devPtr, size_t size); 
@@ -189,9 +197,11 @@ d_input[i];
 cudaFree(d_input);
 ```
 
+<p float="left">
+  <img src="images/mem.png" width="45%" />
+  <img src="images/mem1.png" width="45%" />
+</p>
 
-![alt text](images/mem.png)
-![alt text](images/mem1.png)
 
 
 CPU-GPU Unified Memory
