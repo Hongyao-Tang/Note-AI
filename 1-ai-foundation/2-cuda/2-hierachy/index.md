@@ -169,9 +169,8 @@ Threads use their unique thread index to work on disjoint data
 |Per-grid|![alt text](images/m-g.png)|![alt text](images/m-g-h.png)|
 
 
-
-![alt text](images/m1.png)
 ![alt text](images/m2.png) 
+![alt text](images/m1.png)
 ![alt text](images/m3.png) 
 
 
