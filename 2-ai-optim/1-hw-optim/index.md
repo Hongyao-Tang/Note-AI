@@ -1,6 +1,6 @@
 ---
 author: "Hongyao Tang"
-title: "1.1 [HW] Optimization"
+title: "1. HW Optimization"
 date: "2025-07-02"
 description: "Optimization for AI HW"
 tags: [
