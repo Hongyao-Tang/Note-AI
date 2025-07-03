@@ -2,12 +2,12 @@
 author: "Hongyao Tang"
 title: "Vocabulary"
 date: "2025-06-30"
-description: "Implement a GPT-2 like LLM"
+description: "Vocabulary for AI"
 tags: [
     "DL",
 ]
 ShowToc: true
-weight: 5
+weight: 10
 ---
 
 
