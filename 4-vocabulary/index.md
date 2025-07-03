@@ -1,6 +1,6 @@
 ---
 author: "Hongyao Tang"
-title: "4.1 Vocabulary"
+title: "Vocabulary"
 date: "2025-06-30"
 description: "Implement a GPT-2 like LLM"
 tags: [
