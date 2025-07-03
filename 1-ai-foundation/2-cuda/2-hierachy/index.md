@@ -161,30 +161,28 @@ Threads use their unique thread index to work on disjoint data
 
 ## Memory Hierachy
 ### Logical thread corresponding Memory hierarchy
-Per-thread  
-<p float="left">
-  <img src="images/m-t.png" width="45%" />
-  <img src="images/m-t-h.png" width="45%" />
-</p>
 
-Per-block
-<p float="left">
-  <img src="images/m-b.png" width="45%" />
-  <img src="images/m-b-h.png" width="45%" />
-</p>
+|Logical thread|Mem|HW|
+|-|-|-|
+|Per-thread  |![alt text](images/m-t.png)|![alt text](images/m-t-h.png)|
+|Per-block|![alt text](images/m-b.png)|![alt text](images/m-b-h.png)|
+|Per-grid|![alt text](images/m-g.png)|![alt text](images/m-g-h.png)|
 
+
+
+![alt text](images/m1.png)
+![alt text](images/m2.png) 
+![alt text](images/m3.png) 
+
+
+Shared mem
 ```c
 // 共享内存，仅限 Block 内访问
 __shared__ float sharedData[BLOCK_SIZE];
 sharedData[i];
 ```
 
-Per-grid
-<p float="left">
-  <img src="images/m-g.png" width="45%" />
-  <img src="images/m-g-h.png" width="45%" />
-</p>
-
+Global mem
 ```c
 // 在设备上分配内存
 cudaMalloc(void** devPtr, size_t size); 
@@ -196,12 +194,6 @@ cudaMalloc((void**)&d_input, 256 * sizeof(float));
 d_input[i];
 cudaFree(d_input);
 ```
-
-<p float="left">
-  <img src="images/mem.png" width="45%" />
-  <img src="images/mem1.png" width="45%" />
-</p>
-
 
 
 CPU-GPU Unified Memory
