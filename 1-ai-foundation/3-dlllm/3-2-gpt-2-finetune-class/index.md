@@ -76,7 +76,7 @@ except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
     download_and_unzip_spam_data(url, zip_path, extracted_path, data_file_path) 
 ```
 
-#### S - Data preprocessing
+#### ***S - Data preprocessing
 - 加载tsv到 pandas DataFrame中
 - 为简单起见，我们会使用一个较小的数据集（这将有助于更快地微调大语言模型），每个类别包含 747 个实例
 - 标签是ham, spam string，需要数字化
@@ -312,7 +312,7 @@ CHOOSE_MODEL = "gpt2-small (124M)"
 BASE_CONFIG.update(model_configs[CHOOSE_MODEL])
 ```
 
-#### **[S - 加载预训练权重到自定义 GPT 模型中]**
+#### ***S - 加载预训练权重到自定义 GPT 模型中
 T
 
 - OpenAI 公开分享了它们的 GPT-2 模型的权重，从而省去了我们自己在大型语料库上重新训练模型所需投入的数万到数十万美元
@@ -442,7 +442,7 @@ load_weights_into_gpt(model, params)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ```
 
-#### **[S - 修改模型以进行微调]**
+#### ***S - 修改模型以进行微调
 - 调整架构使 GPT 模型适应垃圾消息分类任务
 - 是微调选定层还是微调所有层
 
