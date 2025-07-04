@@ -393,6 +393,7 @@ for batch, (X, y) in enumerate(test_loader):
 - Need to perform some manipulation of the data and make it suitable for training
   
 T - transform
+
 <u>Load the pre-defined FashionMNIST **datasets** from torchvision.datasets.FashionMNIST()</u>
 - encapsulate raw data by datasets
 - root - is the path where the train/test data is stored
@@ -442,6 +443,7 @@ test_dataloader = DataLoader(test_data, batch_size=batch_size)
 
 
 A2 - TF on MNIST
+
 <u>Load the MNIST from tf.keras.datasets.mnist.load_data()</u>
 Originally
 - pixel values of the images range from 0 through 255
