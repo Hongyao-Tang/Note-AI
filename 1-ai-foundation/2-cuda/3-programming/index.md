@@ -488,6 +488,13 @@ int main(){
 |gridDim |blockIdx  |
 |blockDim |threadIdx|
 
+| CUDA 维度     | 图像/体积数据中的含义     | 常见用途示例                     |
+|---------------|----------------------------|----------------------------------|
+| x           | Width（宽度）              | 图像的列、体素的横向维度        |
+| y           | Height（高度）             | 图像的行、体素的纵向维度        |
+| z           | Depth / Length（深度/长度）| 视频帧、3D 图像的切片或时间维度 |
+
+
 <u>Launch</u>
 ```c
 dim3 grid_dim(grid_dim_x, grid_dim_y, grid_dim_z);
@@ -521,8 +528,9 @@ int tid = tid_z * (gridDim.y * blockDim.y) * (gridDim.x * blockDim.x)
 
 
 <u>Code</u>
-2D
 ```c
+//2D
+
 __global__ void kernel2D() {
     int tid_x = threadIdx.x + blockIdx.x * blockDim.x;
     int tid_y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -542,8 +550,10 @@ int main() {
 }
 ```
 
-3D
+
 ```c
+// 3D
+
 __global__ void kernel3D() {
     int tid_x = threadIdx.x + blockIdx.x * blockDim.x;
     int tid_y = threadIdx.y + blockIdx.y * blockDim.y;
