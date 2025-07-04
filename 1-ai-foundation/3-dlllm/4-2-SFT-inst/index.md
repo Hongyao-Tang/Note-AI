@@ -1,8 +1,8 @@
 ---
 author: "Hongyao Tang"
-title: "3.2 [GPT-2] Instruction Finetune"
+title: "4.2 [SFT] Instruction SFT"
 date: "2025-07-04"
-description: "Instruction finetune a GPT-2 like LLM"
+description: "Instruction SFT based on GPT-2 LLM"
 tags: [
     "DL",
 ]
@@ -407,6 +407,7 @@ model.eval();
 ### Train
 ### Inference & Evaluate accuracy by human
 
+Output
 ![alt text](images/human.png)
 
 ```py
@@ -487,6 +488,7 @@ T
     - Ollama 是一款高效的应用程序，作为开源 llama.cpp 库的包装器，它旨在用纯 C/C++实现大语言模型，以最大限度提高效率
     - 专为在笔记本电脑上运行大语言模型而设计
     - 不过，Ollama 仅用于生成文本（推理），不支持大语言模型的训练或微调
+
 与依赖公开的基准数据集不同，我们将使用自定义的测试集
 - 将生成的模型响应附加到 test_set 字典中，并将更新后的数据保存为 instruction-data-with-response.json 文件
 
