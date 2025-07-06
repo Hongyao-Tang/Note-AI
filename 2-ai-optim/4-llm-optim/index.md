@@ -402,12 +402,13 @@ print(f"Total trainable LoRA parameters: {total_params:,}")
 
 
 
-T - Pure RL
+T - RL & Pure RL
 
 - Pure RL(Without previous SFT) 不依赖人类标注，模型通过试错学习推理策略，reward：leetcode，其他的
 - SFT(Cold start data) + RL -> SFT(CoT data) + RL(HF-like with verification & human preferecen reward)
 - Pure SFT(Without later RL) + distillation(based on small model)
 
+RLHF RL Pure RL
 
 <u>Concepts</u>
 推理
@@ -498,3 +499,131 @@ DeepSeek 团队发现推理能力作为一种行为可以通过纯强化学习�
 R 
 
 推理行为是从纯强化学习中**涌现**出来的
+
+
+#### S - RLHF too slow
+T - DPO(Direct Preference Optimization)
+
+|-| Align - RLHF |Align - DPO|
+|------|----------------------------|------------------------------------|
+| **目标** |  通过强化学习优化模型，使其输出更符合人类偏好 |直接优化模型输出，使其更符合人类偏好，无需强化学习|
+| **数据** | 人类对多个模型回答进行排序，用于训练奖励模型 |同样使用人类排序数据，但不训练奖励模型|
+| **方法 / 步骤** |  1. 训练奖励模型（Reward Model）<br>2. 使用 RL（如 PPO）优化输出 |直接使用排序数据进行优化，最大化人类偏好回答的概率|
+
+
+Compared to RLHF, DPO aims to simplify the process by optimizing models directly for user preferences without the need for complex reward modeling and policy optimization
+
+#### S - raw dataset
+T
+
+- dataset was generated via the create-preference-data-ollama.ipynb notebook
+- a json file with 1100 entries
+```
+{'instruction': "What is an antonym of 'complicated'?",
+ 'input': '',
+ 'output': "An antonym of 'complicated' is 'simple'.",
+ 'chosen': "A suitable antonym for 'complicated' would be 'simple'.",
+ 'rejected': "An antonym of 'complicated' is 'simple'."}
+ ```
+- The 'instruction' and 'input' that are used as LLM inputs
+- Target for SFT - The 'output' contains the response the model was trained on via the instruction finetuning step in chapter 7
+- Target for DPO - the 'chosen' and 'rejected' entries are the entries we use for DPO; here 'chosen' is the preferred response, and 'rejected' is the dispreferred response
+
+A
+
+```py
+import json
+import os
+import urllib
+
+
+def download_and_load_file(file_path, url):
+
+    if not os.path.exists(file_path):
+        with urllib.request.urlopen(url) as response:
+            text_data = response.read().decode("utf-8")
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(text_data)
+    else:
+        with open(file_path, "r", encoding="utf-8") as file:
+            text_data = file.read()
+
+    with open(file_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    return data
+
+
+file_path = "instruction-data-with-preference.json"
+url = (
+    "https://raw.githubusercontent.com/rasbt/LLMs-from-scratch"
+    "/main/ch07/04_preference-tuning-with-dpo/instruction-data-with-preference.json"
+)
+
+data = download_and_load_file(file_path, url)
+print("Number of entries:", len(data))
+```
+
+#### S - preprocess
+- create splits/subsets
+
+A
+
+```py
+train_portion = int(len(data) * 0.85)  # 85% for training
+test_portion = int(len(data) * 0.1)    # 10% for testing
+val_portion = len(data) - train_portion - test_portion  # Remaining 5% for validation
+
+train_data = data[:train_portion]
+test_data = data[train_portion:train_portion + test_portion]
+val_data = data[train_portion + test_portion:]
+```
+
+
+
+#### S - preprocess & datasets
+- formats the model input by applying the Alpaca prompt style 
+- format the chosen and rejected responses using the Alpaca prompt style
+
+A
+
+```py
+def format_input(entry):
+    instruction_text = (
+        f"Below is an instruction that describes a task. "
+        f"Write a response that appropriately completes the request."
+        f"\n\n### Instruction:\n{entry['instruction']}"
+    )
+
+    input_text = f"\n\n### Input:\n{entry['input']}" if entry["input"] else ""
+
+    return instruction_text + input_text
+
+model_input = format_input(data[50])
+print(model_input)
+
+
+desired_response = f"### Response:\n{data[50]['chosen']}"
+print(desired_response)
+
+possible_response = f"### Response:\n{data[50]['rejected']}"
+print(possible_response)
+
+```
+```
+Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+Identify the correct spelling of the following word.
+
+### Input:
+Ocassion
+
+
+### Response:
+The correct spelling is 'Occasion.'
+
+
+### Response:
+The correct spelling is obviously 'Occasion.'
+```
