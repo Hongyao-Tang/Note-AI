@@ -13,6 +13,37 @@ draft: false
 Orgnized by the way of thinking, this page shows issues and solutions in each phase of DL
 
 
+## Data quantity, quality, public availability impacts result
+- new datasets
+
+#### S - Need more this kind of data
+DeepMind LLM
+- Gopher（地鼠） 是 DeepMind 早期的大语言模型之一。
+-  Chinchilla（龙猫/毛丝鼠） 是另一种小型啮齿类动物，名字上与 Gopher 保持了一种“动物家族”的风格
+  
+模型参数 vs 训练数据量
+- 在 Chinchilla 之前，主流观点认为：只要模型参数越多，性能就越好，即使训练数据量不变。
+- Chinchilla Scaling Laws 的核心观点: 在固定计算预算下，最优的训练方式是：模型规模和训练数据量应同时增长
+
+
+T - FineWeb Dataset
+
+Other datasets are comparatively small
+-  English CommonCrawl section of Matrix (1.3T tokens), English CC-100 (70B tokens), Colossal-OSCAR (850B tokens)
+
+RedPajama 
+- contains 20 trillion tokens
+- researchers found that models trained on RedPajama result in poorer quality than FineWeb due to the different filtering rules applied
+
+Llama 3 
+- models with 8B, 70B, and 405B sizes were trained on 15 trillion tokens as well
+- but Meta AI’s training dataset is not publicly available
+
+FineWeb Dataset
+- 15 Trillion Token dataset
+- publicly available
+
+---
 ## Value size impacts stability
 - 渐变
 - threashhold
@@ -287,11 +318,39 @@ def train_model(model, train_loader, val_loader, optimizer, device,
 
 ## Param quantity impacts resource consumption
 - Decompose large structure into smaller pieces
+  - MoE
+  - RoLA
+- Cache
+
+
+### Train/inference
+
+#### S - 如果每次都激活所有参数，计算资源消耗巨大，成本极高, 难以部署和扩展
+
+T - Mistral's Sparse MoE/Mixture of Experts
+
+decompose the one large feed-forward module with  mutiple smaller subnetworks
+- Experts - Each subnetwork is said to be responsible for handling different types of tasks or, more concretely, tokens.
+- Mixture - an ensemble model that combines several smaller “expert” subnetworks inside the GPT-like decoder architecture. 
+- Sparse - refers to the fact that at any given time, only a subset of the expert layers (typically 1 or 2 out of the 8 in Mixtral 8x7B) are actively used for processing a token.
+- there is also a Router module (also known as a gating network) that redirects each of the token embeddings to the 8 expert feed-forward modules, where only a subset of these experts are active at a time.
+
+![alt text](images/moe.png)
+
+
+R
+MoEs aim to allocate computational resources more efficiently.
+
 
 ### Finetune
-#### S - 微调中参数的数量巨大
-T - LoRA减少微调中参数的数量
+#### S - 微调中参数更新的数量巨大
+- 原始 Linear 层的权重变换$$y = xW^T + b$$ W是可训练权重，训练时，W 是直接更新的
 
+
+T - LoRA decompose the Weight update with two small matrix producted
+
+LoRA 的核心是：冻结原始 W，仅训练一个低秩的增量矩阵 ΔW，使得：
+$$y = xW^T + x\Delta W^T=xW^T + xAB$$
 - Rank秩
   - ![alt text](images/rank.png)
   - 第 2 行是第 1 行的 2 倍，第 3 行是第 1 行的 3 倍。所以这三行其实只包含了一行独立信息。因此，这个矩阵的 Rank = 1。
@@ -302,7 +361,10 @@ T - LoRA减少微调中参数的数量
 - Adapatation自适应
   - 使预训练模型更好地适应特定且通常较小的数据集的技术
 
+
+
 <u>W_delta = AB</u>
+
 - r, rank矢，内部维度，可调的超参数。LoRA 的两个小矩阵之所以“特别小”，是因为它们的秩 r很低（通常是 4、8、16 这样的数）,在模型的适应性和效率之间建立平衡
 - W_delta = 4096×4096=16,777,216 个参数
 - r 是一个很小的秩，比如 r = 8
@@ -382,6 +444,8 @@ print(f"Total trainable parameters after: {total_params:,}")
 
 
 replace_linear_with_lora(model, rank=16, alpha=16)
+# self.linear(x) 部分 不会变化，因为其参数被冻结，不再参与训练。
+# self.lora(x) 部分 可以变化，因为 LoRALayer 中的参数 A 和 B 是新创建的 nn.Parameter，默认是 requires_grad=True，仍然可以被训练。
 
 total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Total trainable LoRA parameters: {total_params:,}")
@@ -389,8 +453,253 @@ print(f"Total trainable LoRA parameters: {total_params:,}")
 ```
 
 
----
+#### S - pretrained Weight is also large in quanlity
 
+T - DoRA (Weight-Decomposed Low-Rank Adaptation) - decompose the pretrained Weight
+
+- root idea - that any vector can be represented by its length (magnitude) and direction (orientation), and here we apply it to each column vector of a weight matrix.
+- extends/improves LoRA by first decomposing a pretrained weight matrix into two parts: a magnitude vector m and a directional matrix V.
+- Once we have m and V, DoRA applies LoRA-style low-rank updates only to the directional matrix V, while allowing the magnitude vector m to be trained separately.
+- Rather than uniformly scaling both magnitude and direction as LoRA tends to do, DoRA can make subtle directional adjustments without necessarily increasing the magnitude.
+
+![alt text](images/dora.png)
+
+R
+The result is improved performance and robustness.
+
+
+### Inference
+#### S - The repeated context is recomputed for each token generation step.
+
+High level
+![alt text](images/kv-high.png)
+- LLMs generate one word (or token) at a time
+- The output from previous step becomes prompt as next step
+- the repeated context ("Time flies") that must be reprocessed by the LLM at each generation step. Since the LLM does not cache intermediate key/value states, it re-encodes the full sequence every time a new token (e.g., "fast") is generated.
+
+Zoom in on the attention mechanism itself
+![alt text](images/kv-detail.png)
+- Each input token (e.g., "Time" and "flies") is projected using learned matrices W\_k and W\_v to obtain its corresponding key and value vectors.
+0 Suppose the LLM generated the word “fast” so that the prompt for the next round becomes “Time flies fast”
+- the LLM recomputes key and value vectors for previously seen tokens ("Time" and "flies") during each generation step
+
+
+T
+
+![alt text](images/kv-cache.png)
+- A KV cache stores intermediate key (K) and value (V) computations for reuse during inference 
+- Previously computed keys and values are retrieved from the KV cache to avoid recomputation for faster generation.
+
+```mermaid
+ sequenceDiagram
+    participant User
+    participant GPTModel
+    participant TransformerBlock
+    participant MultiHeadAttention
+
+    User->>GPTModel: forward(input_ids, use_cache=True)
+    GPTModel->>GPTModel: 计算token和position embedding
+    GPTModel->>TransformerBlock: forward(x, use_cache=True)
+    loop for each block
+        TransformerBlock->>MultiHeadAttention: forward(x, use_cache=True)
+        alt KV Cache未初始化
+            MultiHeadAttention->>MultiHeadAttention: 初始化cache_k, cache_v
+        end
+        alt 缓存溢出
+            MultiHeadAttention->>MultiHeadAttention: 左移缓存，丢弃旧token
+        end
+        MultiHeadAttention->>MultiHeadAttention: 更新cache_k, cache_v
+        MultiHeadAttention->>MultiHeadAttention: 构造causal mask（考虑缓存偏移）
+        MultiHeadAttention->>MultiHeadAttention: 计算注意力输出
+        MultiHeadAttention-->>TransformerBlock: 返回context_vec
+        TransformerBlock->>TransformerBlock: 残差连接 + FFN
+        TransformerBlock-->>GPTModel: 返回x
+    end
+    GPTModel->>GPTModel: 最终归一化 + 输出logits
+    GPTModel-->>User: 返回logits 
+```
+
+
+
+A
+
+1.add two non-persistent buffers, cache_k and cache_v, which will hold concatenated keys and values across steps
+```py
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
+        super().__init__()
+        assert d_out % num_heads == 0, "d_out must be divisible by num_heads"
+
+        self.d_out = d_out
+        self.num_heads = num_heads
+        self.head_dim = d_out // num_heads  # Reduce the projection dim to match desired output dim
+
+        self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.out_proj = nn.Linear(d_out, d_out)  # Linear layer to combine head outputs
+        self.dropout = nn.Dropout(dropout)
+        self.register_buffer(
+            "mask",
+            torch.triu(torch.ones(context_length, context_length), diagonal=1),
+            persistent=False
+        )
+
+        ####################################################
+        # NEW
+        self.register_buffer("cache_k", None, persistent=False)
+        self.register_buffer("cache_v", None, persistent=False)
+        self.ptr_current_pos = 0
+        ####################################################
+```
+
+2.Forward pass with use_cache flag
+- Storing
+  - after the cache is initialized via the if self.cache_k is None: ..., we add the newly generated keys and values via self.cache_k = torch.cat(...) and self.cache_v = torch.cat(...) to the cache, respectively.
+- Retrieving
+  - keys, values = self.cache_k, self.cache_v retrieves the stored values and keys from the cache.
+- torch.cat(tensor_list, dim)在指定维度上拼接多个张量（tensor）
+  - tensor_list：要拼接的张量列表（它们在除了拼接维度以外的维度上必须形状一致）
+  - dim：在哪个维度上拼接
+```py
+def forward(self, x, use_cache=False):
+    b, num_tokens, d_in = x.shape
+
+    keys_new = self.W_key(x)  # Shape: (b, num_tokens, d_out)
+    values_new = self.W_value(x)
+    queries = self.W_query(x)
+    #...
+
+    if use_cache:
+        if self.cache_k is None:
+            self.cache_k, self.cache_v = keys_new, values_new
+        else:
+            self.cache_k = torch.cat([self.cache_k, keys_new], dim=1)
+            self.cache_v = torch.cat([self.cache_v, values_new], dim=1)
+        keys, values = self.cache_k, self.cache_v
+    else:
+        keys, values = keys_new, values_new
+
+    keys = keys.transpose(1, 2)
+    queries = queries.transpose(1, 2)
+    values = values.transpose(1, 2)
+```
+
+3.reset both the keys and value buffers between two separate text-generation calls. Otherwise, the queries of a new prompt will attend to stale keys left over from the previous sequence
+```py
+def reset_cache(self):
+    self.cache_k, self.cache_v = None, None
+```
+
+4.GPT class
+- a simple counter that remembers how many tokens the model has already cached during an incremental generation session.
+  - The reason for the self.current_pos tracking is that new queries must line up directly after the keys and values that are already stored. Without using a counter, every new step would start at position 0 again, so the model would treat the new tokens as if they overlapped the earlier ones
+  - What happens above if we set use_cache=True is that we start at the self.current_pos and count seq_len steps. Then, bump the counter so the next decoding call continues where we left off.
+```py
+def forward(self, in_idx, use_cache=False):
+    # ...
+ 
+    if use_cache:
+        pos_ids = torch.arange(
+            self.current_pos, self.current_pos + seq_len,            
+            device=in_idx.device, dtype=torch.long
+        )
+        self.current_pos += seq_len
+    else:
+        pos_ids = torch.arange(
+            0, seq_len, device=in_idx.device, dtype=torch.long
+        )
+    
+    pos_embeds = self.pos_emb(pos_ids).unsqueeze(0)
+    x = tok_embeds + pos_embeds
+    # ...
+    for blk in self.trf_blocks:
+        x = blk(x, use_cache=use_cache)
+```
+
+5.add a model-level reset to GPTModel to clear all block caches
+```py
+def reset_kv_cache(self):
+    for blk in self.trf_blocks:
+        blk.att.reset_cache()
+    self.current_pos = 0
+```
+
+6.Using the Cache in Generation
+- only feed the model the new token in c) via logits = model(next_idx, use_cache=True)
+- feed the model the whole input logits = model(idx[:, -ctx_len:], use_cache=False) as it has no stored keys and values to reuse
+```py
+def generate_text_simple_cached(
+        model, idx, max_new_tokens, use_cache=True
+    ):
+    model.eval()
+
+    ctx_len = model.pos_emb.num_embeddings  # max sup. len., e.g. 1024
+    if use_cache:
+        # Init cache with full prompt
+        model.reset_kv_cache()
+        with torch.no_grad():
+            logits = model(idx[:, -ctx_len:], use_cache=True)
+
+        for _ in range(max_new_tokens):
+            # a) pick the token with the highest log-probability 
+            next_idx = logits[:, -1].argmax(dim=-1, keepdim=True)
+            # b) append it to the running sequence
+            idx = torch.cat([idx, next_idx], dim=1)
+            # c) feed model only the new token
+            with torch.no_grad():
+                logits = model(next_idx, use_cache=True)
+    else:
+        for _ in range(max_new_tokens):
+            with torch.no_grad():
+                logits = model(idx[:, -ctx_len:], use_cache=False)
+            next_idx = logits[:, -1].argmax(dim=-1, keepdim=True)
+            idx = torch.cat([idx, next_idx], dim=1)
+
+    return idx
+```
+
+
+R1
+
+- Memory fragmentation and repeated allocations: Continuously concatenating tensors via torch.cat, as shown earlier, leads to performance bottlenecks due to frequent memory allocation and reallocation.
+- Pre-allocate Memory. Rather than concatenating tensors repeatedly, we could pre-allocate a sufficiently large tensor based on the expected maximum sequence length. This ensures consistent memory use and reduces overhead.
+```py
+# Example pre-allocation for keys and values
+max_seq_len = 1024  # maximum expected sequence length
+cache_k = torch.zeros(
+    (batch_size, num_heads, max_seq_len, head_dim), device=device
+)
+cache_v = torch.zeros(
+    (batch_size, num_heads, max_seq_len, head_dim), device=device
+)
+```
+
+
+- Linear growth in memory usage: Without proper handling, the KV cache size becomes impractical for very long sequences
+- Truncate Cache via Sliding Window. To avoid blowing up our GPU memory, we can implement a sliding window approach with dynamic truncation. Via the sliding window, we maintain only the last window_size tokens in the cache
+```py
+# Sliding window cache implementation
+window_size = 512
+cache_k = cache_k[:, :, -window_size:, :]
+cache_v = cache_v[:, :, -window_size:, :]
+```
+
+
+
+R
+
+Compute-efficient/inference speed-ups
+- a KV cache stores intermediate key (K) and value (V) computations for reuse during inference (after training), which results in a substantial speed-up when generating text.
+
+Memory-increasing
+- adds more complexity to the code, increases memory requirements
+
+The inference speed-ups are often well worth the trade-offs in code complexity and memory when using LLMs in production.
+
+
+
+---
 ## Learning method
 ### Alignment
 
