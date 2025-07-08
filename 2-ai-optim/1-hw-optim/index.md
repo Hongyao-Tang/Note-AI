@@ -9,6 +9,16 @@ tags: [
 ShowToc: true
 weight: 1
 ---
+
+
+## ML Job Workflow
+When a researcher submits a training job, 
+1. **Scheduler** reserves nodes, 
+2. **OS** provides the GPU devices and memory allocations using the NVIDIA driver
+3. **Container** provides the correct software environment including the optimized, hardware-aware CUDA libraries
+4. User code (e.g. **PyTorch**, TensorFlow, JAX) uses these **CUDA** libraries which ultimately communicate with the driver and hardware.
+![alt text](images/flow.png)
+
 ## Quick refresher
 From Superchip to SuperPOD
 ![alt text](images/comp1.png)

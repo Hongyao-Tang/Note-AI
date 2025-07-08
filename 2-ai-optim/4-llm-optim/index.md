@@ -1,12 +1,12 @@
 ---
 author: "Hongyao Tang"
-title: "LLM Principles Optimization"
+title: "4. LLM Principles Optimization"
 date: "2025-07-04"
 tags: [
     "AI Optim",
 ]
 ShowToc: true
-weight: 1
+weight: 4
 draft: false
 ---
 
@@ -705,7 +705,7 @@ The inference speed-ups are often well worth the trade-offs in code complexity a
 
 | 方法 | 是否需要 Reward Model | 是否需要标注数据（偏好对） | 简要说明 | 通俗理解 |
 |------|------------------------|-----------------------------|----------|-----------|
-| **PPO**<br>（Proximal Policy Optimization） | ✅ 是 | ✅ 是（间接） | 需要训练一个 reward model 来评估模型输出的好坏，reward model 通常基于人工偏好数据训练。 | 学生写作文后，老师（reward model）打分，学生根据分数调整写作风格。老师的评分标准来自于大量人工评分样本。 |
+| **PPO**<br>（Proximal Policy Optimization） | ✅ 是 | ✅ 是（间接） | 需要训练一个 reward model 来评估模型输出的好坏，reward model 通常基于人工偏好数据训练。 PPO引入了一个剪切（clipping）机制，限制每次策略更新的幅度，防止模型走得太远。| 学生写作文后，老师（reward model）打分，学生根据分数调整写作风格。老师的评分标准来自于大量人工评分样本。 |
 | **DPO**<br>（Direct Preference Optimization） | ❌ 否 | ✅ 是（直接） | 不需要 reward model，直接使用人工标注的偏好对（chosen vs rejected）进行监督学习。 | 老师不打分，而是直接告诉学生“这篇比那篇好”，学生学着写得更像“好”的那篇。 |
 | **GRPO**<br>（Group Relative Policy Optimization） | ✅ 是 | ❌ 否 | 使用 reward model 对多个输出打分并归一化，无需人工标注偏好对，减少数据依赖。 | 学生写了几篇作文，老师给每篇打分，学生只看相对分数高低来改进写作，不需要老师明确指出哪篇更好。 |
 
