@@ -528,6 +528,8 @@ print(test_data[0])
 
 start ollama
 ```bash
+snap install ollama
+
 # 启动 Ollama 应用程序
 ollama serve
 ```
@@ -552,8 +554,43 @@ print("Ollama running:", check_if_running("ollama"))
 
 start model
 ```bash
-# 启动 Llama 3 模型
-ollama run llama3
+############################ MODEL ############################
+ollama pull llama3 # https://ollama.com/library
+
+ollama list
+# NAME             ID              SIZE      MODIFIED
+# llama3:latest    365c0bd3c000    4.7 GB    13 minutes ago
+
+ollama show llama3
+#   Model
+#     architecture        llama
+#     parameters          8.0B
+#     context length      8192
+#     embedding length    4096
+#     quantization        Q4_0
+
+#   Capabilities
+#     completion
+
+#   Parameters
+#     num_keep    24
+#     stop        "<|start_header_id|>"
+#     stop        "<|end_header_id|>"
+#     stop        "<|eot_id|>"
+
+#   License
+#     META LLAMA 3 COMMUNITY LICENSE AGREEMENT
+#     Meta Llama 3 Version Release Date: April 18, 2024
+
+
+############################ RUN ############################
+ollama run llama3 --keepalive 5m
+
+ollama ps
+NAME             ID              SIZE      PROCESSOR    UNTIL
+llama3:latest    365c0bd3c000    6.2 GB    100% CPU     4 minutes from now
+
+ollama run llama3 # re-enter
 ```
 
 ```bash
