@@ -11,7 +11,7 @@ weight: 1
 ---
 
 
-## S - Extend LLM with external actions
+## S - Enhance LLM with external tools
 - Unify the protocol, and implement once
 ![alt text](images/need.png)
 
