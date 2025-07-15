@@ -1,6 +1,6 @@
 ---
 author: "Hongyao Tang"
-title: "3.2 [RAG] Intro"
+title: "3.1 [RAG] Intro"
 date: "2025-07-15"
 description: "Introduction to RAG"
 tags: [
@@ -18,11 +18,11 @@ weight: 3
 - Key question is data retrival
 - Retrival Argumented Generation
 
-## T - Keyword research
+## T - Keyword search
 - **字面匹配**
 
 
-## T - Vector research
+## T - Vector search
 - 关键词搜索，严格的字面匹配，只能识别发明人
 - 向量搜索，**嵌入+语义搜索**，识别近义词，能识别创造者
 
@@ -88,11 +88,11 @@ print(response.choices[0].message.content)
 - OpenAI DB
 - OpenAI client do Index: client.vector_stores.files.upload_and_poll()
 - OpenAI client do Retrival: client.vector_stores.search()
-- 通过MCP，作为tools来接入到LLM
+- 通过MCP tools, 放入历史对话，来接入到LLM
 
 
 
-## T - Graph research
+## T - Graph search
 - 向量搜索，基于语义相似性匹配查询，是单跳检索，返回多个碎片：可能直接返回专利，发明人相关的片段
 - 图搜索，**知识图谱+结构搜索**，通过遍历路径实现多跳推理，返回精准答案：柴油机->[有]->专利->[发明人是]->张三
 - LlamaIndex协调两类检索
@@ -170,7 +170,7 @@ res = kg.add_graph_documents(graph_documents, include_source=True, baseEntityLab
 - neo4j DB
 - OpenAI do Index:  OpenAIEmbeddings()
 - OpenAI do Retrival: vector_index.similarity_search(question)
-- As chain to pass to LLM
+- As context to pass to LLM
 
 ```py
 from langchain_community.vectorstores import Neo4jVector
@@ -676,32 +676,3 @@ Chanllenges
 
 
 
-
-
-
-
-
-
-
-
-
-
----
-
-subject
-
-object
-predicate
-
-
-Ontology
-
-Taxonom
-
-curate
-n.（某教区的）助理牧师；堂区牧师
-v.操持（收藏品或展品的）展出；组织（音乐节的）演出
-
-Crowdsource v 众包(尤指利用互联网)将工作分配给不特定人群
-
-interoperability

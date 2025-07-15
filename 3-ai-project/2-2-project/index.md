@@ -1,6 +1,6 @@
 ---
 author: "Hongyao Tang"
-title: "3.2 [MCP] Project"
+title: "2.2 [MCP] Project"
 date: "2025-07-14"
 description: "MCP Project List"
 tags: [
@@ -26,18 +26,19 @@ T - RAG as one of MCP server backends
 
 
 ```py
-# Vector store
+################ Vector store ################
 client.vector_stores.create(name="MEMORIESTWO")
+
 stores = client.vector_stores.list()
 
 client.vector_stores.files.upload_and_poll(
     vector_store_id=vector_store.id,
     file=open(f.name, "rb")
 )
-- 使用你的 client 对象上传文件。
-- vector_store_id 是你目标向量数据库的 ID。
-- 用 open(f.name, "rb") 以二进制方式读取刚才创建的临时文件。
-- upload_and_poll 方法会上传文件并等待处理完成（可能包括嵌入处理等）。
+# 使用你的 client 对象上传文件。
+# vector_store_id 是你目标向量数据库的 ID。
+# 用 open(f.name, "rb") 以二进制方式读取刚才创建的临时文件。
+# upload_and_poll 方法会上传文件并等待处理完成（可能包括嵌入处理等）。
 
 
 results = client.vector_stores.search(
@@ -45,22 +46,20 @@ results = client.vector_stores.search(
         query=query,
     )
 
-# Var to temfile
+################# Var to temfile ################
 with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".txt") as f:
-
-- 使用 tempfile.NamedTemporaryFile 创建一个临时文件
-- mode="w+" 表示你可以读写这个文件。
-- delete=False 是为了让文件在关闭后不会被自动删除（因为你后续还需要上传它）。
-- suffix=".txt" 是文件的扩展名
+# 使用 tempfile.NamedTemporaryFile 创建一个临时文件
+# mode="w+" 表示你可以读写这个文件。
+# delete=False 是为了让文件在关闭后不会被自动删除（因为你后续还需要上传它）。
+# suffix=".txt" 是文件的扩展名
 
 f.write(memory)
 f.flush()
-
-- 将 memory 的内容写入这个临时文件。
-- flush() 是为了确保数据真的写进了磁盘，而不是停留在缓冲区。
+# 将 memory 的内容写入这个临时文件。
+# flush() 是为了确保数据真的写进了磁盘，而不是停留在缓冲区。
 ```
 
-OpenAI上的Vector storeit
+OpenAI上的Vector store
 ![alt text](images/vectorestore.png)
 
 

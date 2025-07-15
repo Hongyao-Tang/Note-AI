@@ -601,8 +601,10 @@ ollama run llama3 # re-enter
 /bye
 ```
 
+- API
 ```py
 import urllib.request
+import json
 
 def query_model(
     prompt,
@@ -651,6 +653,29 @@ def query_model(
 model = "llama3"
 result = query_model("What do Llamas eat?", model)
 print(result)
+```
+
+- OpenAI() client
+```py
+from openai import OpenAI
+
+# 创建客户端，连接本地 Ollama
+client = OpenAI(
+    base_url="http://localhost:11434/v1",  # Ollama 的 OpenAI 接口
+    api_key="ollama-local"  # 虚拟 key，Ollama 不验证
+)
+
+# 调用本地模型
+response = client.chat.completions.create(
+    model="llama3.2",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "介绍一下上海的历史。"}
+    ]
+)
+
+# 输出结果
+print(response.choices[0].message.content)
 ```
 
 

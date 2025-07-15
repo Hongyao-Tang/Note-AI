@@ -1,6 +1,6 @@
 ---
 author: "Hongyao Tang"
-title: "3.1 [MCP] Intro"
+title: "2.1 [MCP] Intro"
 date: "2025-07-14"
 description: "An introduction to MCP Protocol"
 tags: [
@@ -12,7 +12,7 @@ weight: 1
 
 
 ## S - Enhance LLM with external tools
-- Unify the protocol, and implement once
+- Unify the protocol to interact with external systems
 ![alt text](images/need.png)
 
 
@@ -23,7 +23,7 @@ weight: 1
 边界
 ![alt text](images/agent.png)
 
-类别
+类比
 ![alt text](images/usb.png)
 
 Arch
@@ -34,177 +34,8 @@ Flow
 ![alt text](images/flow.png)
 
 ---
-### External Services
-
-#### UPWARD: work as capabilities to server
-- Local file
-- Local desktop
-  - to screenshot your local computer to tell what you are seeing
-- API call
-- Another LLM
-
-
-##### A - wrappered by server
-![alt text](images/wrap.png)
-
-- Local file <- with open(file,"a/r", encoding="utf-8) as f: f.write(content)/notes = f.read()
-```py
-from mcp.server.fastmcp import FastMCP
-
-mcp = FastMCP("LocalNotes")
-
-@mcp.tool()
-def add_note_to_file(content: str) -> str:
-    """
-    Appends the given content to the user's local notes.
-    Args:
-        content: The text content to append.
-    """
-
-    filename = 'notes.txt'
-
-    try:
-        with open(filename, "a", encoding="utf-8") as f:
-            f.write(content + "\n")
-        return f"Content appended to {filename}."
-    except Exception as e:
-        return f"Error appending to file {filename}: {e}"
-    
-
-@mcp.tool()
-def read_notes() -> str:
-    """
-    Reads and returns the contents of the user's local notes.
-    """
-    filename = 'notes.txt'
-
-    try:
-        with open(filename, "r", encoding="utf-8") as f:
-            notes = f.read()
-        return notes if notes else "No notes found."
-    except FileNotFoundError:
-        return "No notes file found."
-    except Exception as e:
-        return f"Error reading file {filename}: {e}"
-    
-if __name__ == "__main__":
-    mcp.run()
-```
-
-- Local desktop <- pyautogui.screenshot()
-```py
-from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.utilities.types import Image
-
-import pyautogui
-import io
-
-# Create server
-mcp = FastMCP("ScreenshotDemo")
-
-@mcp.tool()
-def capture_screenshot() -> Image:
-    """
-    Capture the current screen and return the image. Use this tool whenever the user requests a screenshot of their activity.
-    """
-
-    buffer = io.BytesIO()
-
-    # if the file exceeds ~1MB, it will be rejected by Claude
-    screenshot = pyautogui.screenshot()
-    screenshot.convert("RGB").save(buffer, format="JPEG", quality=60, optimize=True)
-    return Image(data=buffer.getvalue(), format="jpeg")
-
-if __name__ == "__main__":
-    mcp.run()
-```
-
-- API call <- requests.get()
-```py
-from mcp.server.fastmcp import FastMCP
-import requests
-
-mcp = FastMCP("Crypto")
-
-@mcp.tool()
-def get_cryptocurrency_price(crypto: str) -> str:
-    """
-    Gets the price of a cryptocurrency.
-    Args:
-        crypto: symbol of the cryptocurrency (e.g., 'bitcoin', 'ethereum').
-    """
-    try:
-        # Use CoinGecko API to fetch current price in USD
-        url = f"https://api.coingecko.com/api/v3/simple/price"
-        params = {"ids": crypto.lower(), "vs_currencies": "usd"}
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        price = data.get(crypto.lower(), {}).get("usd")
-        if price is not None:
-            return f"The price of {crypto} is ${price} USD."
-        else:
-            return f"Price for {crypto} not found."
-    except Exception as e:
-        return f"Error fetching price for {crypto}: {e}"
-    
-if __name__ == "__main__":
-    mcp.run()
-```
-
-- Another model <- client.chat.completions.create()
-```py
-from mcp.server.fastmcp import FastMCP
-from openai import OpenAI
-
-YOUR_API_KEY = 'xxx'
-YOUR_API_KEY1 = 'xxx'
-
-DS = "https://api.deepseek.com"
-PL = "https://api.perplexity.ai"
-
-mcp = FastMCP("WebSearch")
-
-@mcp.tool()
-def perform_websearch(query: str) -> str:
-    """
-    Performs a web search for a query
-    Args:
-        query: the query to web search.
-    """
-
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are an AI assistant that searches the web and responds to questions"
-            ),
-        },
-        {   
-            "role": "user",
-            "content": (
-                query
-            ),
-        },
-    ]
-
-    client = OpenAI(api_key=YOUR_API_KEY1, base_url=PL)
-
-    # chat completion without streaming
-    response = client.chat.completions.create(
-        model="sonar-pro",
-        messages=messages,
-    )
-    
-    return response.choices[0].message.content
-
-if __name__ == "__main__":
-    mcp.run()
-```
-
-
----
 ### MCP Server
+
 #### Public Choices
 mcp official servers: https://github.com/modelcontextprotocol Airbnb
 
@@ -219,19 +50,29 @@ mcp official servers: https://github.com/modelcontextprotocol Airbnb
 }
 ```
 
+#### 1/To be called by Client
+
+##### Primitives
+| 分类        | 描述                                                                 | 示例/用途                                      |
+|-------------|----------------------------------------------------------------------|------------------------------------------------|
+| **Tools(99% case)**   | 由模型控制的逻辑/功能模块，可被调用执行操作                         | API 请求、CRUD 操作、计算任务 IN: Parameters to be called; OUT: Connect with external services等                |
+| **Resources** | 应用控制的数据资源，用于为主机或客户端提供上下文信息               | 文件内容、读取指令、用户数据等                 |
+| **Prompts** | 用户控制的提示模板，用于向 LLM 提供定制化提示                        | 生成特定格式的研究报告、代码注释等   
 
 
-#### DOWNWARD: call external services
 
-##### A - define a server
+##### Tool/function as action called by LLM 
 
-0.install packages
+![alt text](images/wrap.png)
+
+
+1.install packages
 
 - uv Python包管理器,是 pip 和 virtualenv 的替代品
 - npm/npx JavaScript 的包管理器
 
 
-1.initialize project
+2.initialize project
 ```bash
 # Creat helloworld folder
 uv init # create project
@@ -239,8 +80,9 @@ uv venv # crate virtual env
 .venv\Scripts\activate
 ```
 
-2.define server
+3.define server
 - Create tool with FastMCP class rather lowlevel server class
+- mcp server with tool defined <-  @mcp.tool()
 - name: will use function name
 - description: will use docstring
 - schema: will use input params
@@ -262,7 +104,7 @@ if __name__ == "__main__":
     mcp.run()
 ```
 
-3.before publishing, run and debug server
+4.before publishing, run and debug server
 - nothing will happen
 ```bash
 uv run weather.py
@@ -280,26 +122,8 @@ mcp dev weather.py # create a temp MCP host and client that allow us to further 
 
 
 
-#### UPWARD: function called by client
 
-
-
-##### Primitives
-| 分类        | 描述                                                                 | 示例/用途                                      |
-|-------------|----------------------------------------------------------------------|------------------------------------------------|
-| **Tools(99% case)**   | 由模型控制的逻辑/功能模块，可被调用执行操作                         | API 请求、CRUD 操作、计算任务 IN: Parameters to be called; OUT: Connect with external services等                |
-| **Resources** | 应用控制的数据资源，用于为主机或客户端提供上下文信息               | 文件内容、读取指令、用户数据等                 |
-| **Prompts** | 用户控制的提示模板，用于向 LLM 提供定制化提示                        | 生成特定格式的研究报告、代码注释等   
-
-
-##### Tool/function as action called by LLM 
-
-
-A
-
-- mcp server with tool defined <-  @mcp.tool()
-- string params
-- custom input schema <- pydantic.BaseModel
+Custom input schema <- pydantic.BaseModel
 
 ```py
 from mcp.server.fastmcp import FastMCP
@@ -356,9 +180,7 @@ if __name__ == "__main__":
 ##### Prompts/Prompt Engineering
 
 - provide the very end user a full prompt guide to use based on some keywords
-
-A
-
+- 
 - mcp server with prompt defined <- @mcp.prompt()
 - cline不支持prompts
 
@@ -407,9 +229,7 @@ if __name__ == "__main__":
 
 - expose data to client or LLM as private data or context to answer questions
 - like GET to retrieve data, while tools like POST to do action
-
-A
-
+- 
 - mcp server with resources define <- @mcp.resource("inventory://overview")
 ```py
 from mcp.server.fastmcp import FastMCP
@@ -461,7 +281,7 @@ if __name__ == "__main__":
     mcp.run()
 ```
 
-##### package & publishing
+##### Package & publishing
 <u>Public for local deployment</u>
 if mcp server is in js
 - upload to: https://www.npmjs.com/ at https://www.npmjs.com/package/@openbnb/mcp-server-airbnb
@@ -661,6 +481,179 @@ R
 
 
 
+
+#### 2/Wrap External Services
+
+- Local file
+- Local desktop
+  - to screenshot your local computer to tell what you are seeing
+- API call
+- Another LLM
+
+
+
+- Local file <- with open(file,"a/r", encoding="utf-8) as f: f.write(content)/notes = f.read()
+```py
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("LocalNotes")
+
+@mcp.tool()
+def add_note_to_file(content: str) -> str:
+    """
+    Appends the given content to the user's local notes.
+    Args:
+        content: The text content to append.
+    """
+
+    filename = 'notes.txt'
+
+    try:
+        with open(filename, "a", encoding="utf-8") as f:
+            f.write(content + "\n")
+        return f"Content appended to {filename}."
+    except Exception as e:
+        return f"Error appending to file {filename}: {e}"
+    
+
+@mcp.tool()
+def read_notes() -> str:
+    """
+    Reads and returns the contents of the user's local notes.
+    """
+    filename = 'notes.txt'
+
+    try:
+        with open(filename, "r", encoding="utf-8") as f:
+            notes = f.read()
+        return notes if notes else "No notes found."
+    except FileNotFoundError:
+        return "No notes file found."
+    except Exception as e:
+        return f"Error reading file {filename}: {e}"
+    
+if __name__ == "__main__":
+    mcp.run()
+```
+
+- Local desktop <- pyautogui.screenshot()
+```py
+from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.utilities.types import Image
+
+import pyautogui
+import io
+
+# Create server
+mcp = FastMCP("ScreenshotDemo")
+
+@mcp.tool()
+def capture_screenshot() -> Image:
+    """
+    Capture the current screen and return the image. Use this tool whenever the user requests a screenshot of their activity.
+    """
+
+    buffer = io.BytesIO()
+
+    # if the file exceeds ~1MB, it will be rejected by Claude
+    screenshot = pyautogui.screenshot()
+    screenshot.convert("RGB").save(buffer, format="JPEG", quality=60, optimize=True)
+    return Image(data=buffer.getvalue(), format="jpeg")
+
+if __name__ == "__main__":
+    mcp.run()
+```
+
+- API call <- requests.get()
+```py
+from mcp.server.fastmcp import FastMCP
+import requests
+
+mcp = FastMCP("Crypto")
+
+@mcp.tool()
+def get_cryptocurrency_price(crypto: str) -> str:
+    """
+    Gets the price of a cryptocurrency.
+    Args:
+        crypto: symbol of the cryptocurrency (e.g., 'bitcoin', 'ethereum').
+    """
+    try:
+        # Use CoinGecko API to fetch current price in USD
+        url = f"https://api.coingecko.com/api/v3/simple/price"
+        params = {"ids": crypto.lower(), "vs_currencies": "usd"}
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        price = data.get(crypto.lower(), {}).get("usd")
+        if price is not None:
+            return f"The price of {crypto} is ${price} USD."
+        else:
+            return f"Price for {crypto} not found."
+    except Exception as e:
+        return f"Error fetching price for {crypto}: {e}"
+    
+if __name__ == "__main__":
+    mcp.run()
+```
+
+- Another model <- client.chat.completions.create()
+```py
+from mcp.server.fastmcp import FastMCP
+from openai import OpenAI
+
+YOUR_API_KEY = 'xxx'
+YOUR_API_KEY1 = 'xxx'
+
+DS = "https://api.deepseek.com"
+PL = "https://api.perplexity.ai"
+
+mcp = FastMCP("WebSearch")
+
+@mcp.tool()
+def perform_websearch(query: str) -> str:
+    """
+    Performs a web search for a query
+    Args:
+        query: the query to web search.
+    """
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are an AI assistant that searches the web and responds to questions"
+            ),
+        },
+        {   
+            "role": "user",
+            "content": (
+                query
+            ),
+        },
+    ]
+
+    client = OpenAI(api_key=YOUR_API_KEY1, base_url=PL)
+
+    # chat completion without streaming
+    response = client.chat.completions.create(
+        model="sonar-pro",
+        messages=messages,
+    )
+    
+    return response.choices[0].message.content
+
+if __name__ == "__main__":
+    mcp.run()
+```
+
+
+
+
+
+
+
+
 ---
 ### MCP Client
 #### Public choices
@@ -684,7 +677,7 @@ R
 
 
 
-#### DOWNWARD: Call server with MCP protocol
+#### 1/Interact with server with MCP protocol
 client is to
 - download server
 - install server
@@ -701,7 +694,7 @@ Using Python SDK ClientSession class
 
 
 
-##### A - Install server
+##### Install server
 
 Installation is recording cmd the start the server in client config.json, this is all we need to do.
 
@@ -732,7 +725,7 @@ C:\Users\user2\AppData\Roaming\Code\User\globalStorage\saoudrizwan.claude-dev\se
 mcp install weather.py
 ```
 
-##### A -  Call server
+##### Call server
 - run server <- mcp.StdioServerParameters
 - connect to server <- await session.initialize()
 - list <- await session.list_tools()
@@ -809,7 +802,7 @@ uv run client.py
 
 
 
-#### UPWARD: a function嵌入在上面的MCP Host中, called by LLM
+#### 2/integrated with LLM
 
 - Client
   - list tools
@@ -970,14 +963,11 @@ if __name__ == "__main__":
 ### MCP Host
 - host contains sth
 - MCP host is any app that contains an MCP client
-
-
-
-#### INCLUDE: LLM
-Model: deepseek:deepseek-chat
-- Balance: top up to have balance to create API keys
-- API Keys: sk-xxx
-- API："https://api.deepseek.com" or "https://api.perplexity.ai"
+- Also include LLM
+  - Model: deepseek:deepseek-chat
+  - Balance: top up to have balance to create API keys
+  - API Keys: sk-xxx
+  - API："https://api.deepseek.com" or "https://api.perplexity.ai"
 
 
 
