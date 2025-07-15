@@ -1,6 +1,6 @@
 ---
 title: "AI Optimization"
 layout: "list"
-weight: 3
+weight: 2
 #cover: /images/posts-cover.jpg
 ---
