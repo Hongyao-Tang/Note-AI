@@ -1,6 +1,6 @@
 ---
 author: "Hongyao Tang"
-title: "3.2 [RAG] RAG Intro"
+title: "3.2 [RAG] Intro"
 date: "2025-07-15"
 description: "Introduction to RAG"
 tags: [
