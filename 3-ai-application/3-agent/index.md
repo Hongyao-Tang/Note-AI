@@ -1,18 +1,44 @@
 ---
 author: "Hongyao Tang"
-title: "2.1 [MCP] Intro"
-date: "2025-07-14"
-description: "An introduction to MCP Protocol"
+title: "3. Agent"
+date: "2025-07-15"
 tags: [
-    "mcp",
+    "agent",
 ]
 ShowToc: true
-weight: 1
+weight: 3
 ---
 
 
-## S - Enhance LLM with external tools
-- Unify the protocol to interact with external systems
+# S - Agent
+Problem is
+- Tasks/Multiple external tools
+  - Search Entire Books/RAG
+  - SQL operations
+  - Search Internet
+- Need tools
+
+Chain is
+
+Agent tools
+- DuckDuckGo search
+- Zapier NLA
+- Shell
+- Python REPL
+- Chains/Agents/Custom functions
+![alt text](images/lcagent.png)
+
+Domain is
+- Agent
+
+
+# T - LangChain No-Code: Langflow(Flowise)
+
+
+
+
+
+## T - MCP: Unify the protocol to interact with external systems
 ![alt text](images/need.png)
 
 

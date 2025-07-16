@@ -1,22 +1,55 @@
 ---
 author: "Hongyao Tang"
-title: "3.1 [RAG] Intro"
+title: "2. RAG"
 date: "2025-07-15"
-description: "Introduction to RAG"
 tags: [
     "rag",
 ]
 ShowToc: true
-weight: 3
+weight: 2
 ---
 
 
+## S - RAG
+Problem is
+
+- Task: Seach entire books/Large external data
+- Coping text from books and paste in gpt, exceeding the context size
 
 
-## S - Enhance LLM with External Data
-柴油机的核心专利的发明人是谁？
-- Key question is data retrival
-- Retrival Argumented Generation
+Chain is
+
+Indexing/Embedding path
+
+- Document loaders
+- Test splitters
+- Embedding models
+- Vector stores
+![alt text](images/index.png)
+
+
+Retriving/Retrieval path
+
+- Embedding
+- Compare
+- Search to select
+- Convert to text
+- LLM
+![alt text](images/ret.png)
+
+
+Domain is
+- RAG
+
+## T - LangChain No-Code: Langflow(Flowise)
+
+
+
+
+
+
+
+
 
 ## T - Keyword search
 - **字面匹配**
