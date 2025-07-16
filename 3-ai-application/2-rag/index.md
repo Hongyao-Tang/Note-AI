@@ -41,12 +41,27 @@ Retriving/Retrieval path
 Domain is
 - RAG
 
-## T - LangChain No-Code: Langflow(Flowise)
+## T - Dify
 
 
+### A - Knowledge is RAG
+Index
+![alt text](images/rag-proc.png)
 
+Retrieve
+![alt text](images/rag-ret.png)
 
+## S - Memory/Knowledge
+Problem is
 
+- Tasks: remember conversation
+
+Solution is
+
+- Configured to run with chains or agents
+
+Domain is
+- Memory
 
 
 

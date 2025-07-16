@@ -10,13 +10,14 @@ weight: 3
 ---
 
 
-# S - Agent
+## S - Agent
 Problem is
 - Tasks/Multiple external tools
   - Search Entire Books/RAG
   - SQL operations
   - Search Internet
 - Need tools
+- Autommous call tools with self-analysis, without deterministic worflow for step 1,2,3
 
 Chain is
 
@@ -32,7 +33,19 @@ Domain is
 - Agent
 
 
-# T - LangChain No-Code: Langflow(Flowise)
+## T - Dify
+Tools and autonomous calling
+![alt text](images/agent-dify.png)
+
+
+
+Also a MCP client
+![alt text](images/mcpcli.png)
+
+
+
+
+
 
 
 
@@ -40,6 +53,7 @@ Domain is
 
 ## T - MCP: Unify the protocol to interact with external systems
 ![alt text](images/need.png)
+
 
 
 

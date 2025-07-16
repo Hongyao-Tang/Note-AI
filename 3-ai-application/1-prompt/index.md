@@ -28,25 +28,51 @@ Domain is
 
 ![alt text](images/prompt.png)
 
-## T - LangChain No-Code: Langflow(Flowise)
-
-- Chain - helps use achieve a specific task by linking multiple components together
-- Flowise 是一个开源的、可视化的 LLM 应用构建平台，基于 LangChain.js 开发，主打“拖拽式”无代码开发体验
-- Langflow 是另一个开源的可视化工具，专注于构建和原型化 LangChain（Python版） 的工作流
 
 
-- 链逻辑由连接线表示：
-- 在 Langflow 的画布中，组件之间的连接线本身就代表了链式执行流程
-- 所以不再需要一个单独的 “Chain” 元素来表示流程
+## T - Dify No code
+- Define and modIFY
 
+### A - Prompt template - one round
+Text generator
+![alt text](images/tmpl2.png)
 
+Prompt generator
+![alt text](images/prmptgen.png)
 
-### A - Clone a simple ChatGPT
-![alt text](images/chatgpt.png)
+```xml
+<instruction>
+Generate a catchy and memorable slogan based on the provided company description. Follow these steps:
+1. Read the company description carefully to understand its core values, mission, and target audience.
+2. Identify key themes or unique selling points from the description.
+3. Craft a slogan that is short, impactful, and aligns with the company's identity.
+4. Ensure the slogan is original and avoids clichés unless they fit exceptionally well.
+5. The output should be a single slogan without any additional explanations or XML tags.
 
-Playground
-![alt text](images/chat.png)
+Input variables:
+- {{company_description}}: A brief description of the company, including its industry, values, and target audience.
+</instruction>
 
-### A - Prompt templates
+<input>
+{{company_description}}
+</input>
 
-![alt text](images/tmpl.png)
+<output>
+A single-line slogan reflecting the company's identity.
+</output>
+
+<example>
+<input>
+A sustainable fashion brand that uses recycled materials to create stylish clothing for eco-conscious consumers.
+</input>
+
+<output>
+"Wear the Change You Wish to See."
+</output>
+</example>
+```
+
+### A - Prompt template - multi rounds
+Chatbot
+![alt text](images/chatprompt.png)
+
