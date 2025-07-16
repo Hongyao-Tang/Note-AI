@@ -1,6 +1,6 @@
 ---
 author: "Hongyao Tang"
-title: "2.2 [MCP] Project"
+title: "5. Project"
 date: "2025-07-14"
 description: "MCP Project List"
 tags: [

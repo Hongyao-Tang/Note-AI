@@ -1,6 +1,6 @@
 ---
 author: "Hongyao Tang"
-title: "3. Minors"
+title: "4. Minors"
 date: "2025-07-15"
 ShowToc: true
 weight: 4
