@@ -2,7 +2,7 @@
 author: "Hongyao Tang"
 title: "5. Project"
 date: "2025-07-14"
-description: "MCP Project List"
+description: "AI Project List"
 tags: [
     "mcp",
 ]

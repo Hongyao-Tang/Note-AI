@@ -24,7 +24,7 @@ Indexing/Embedding path
 - Document loaders
 - Test splitters
 - Embedding models
-- Vector stores
+- Vector stores: Pinecone, FAISS, or Azure Cognitive Search
 ![alt text](images/index.png)
 
 
@@ -51,17 +51,7 @@ Index
 Retrieve
 ![alt text](images/rag-ret.png)
 
-## S - Memory/Knowledge
-Problem is
 
-- Tasks: remember conversation
-
-Solution is
-
-- Configured to run with chains or agents
-
-Domain is
-- Memory
 
 
 

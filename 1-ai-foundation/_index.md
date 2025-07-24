@@ -1,6 +1,6 @@
 ---
 title: "AI Foundation"
 layout: "list"
-weight: 1
+weight: 2
 #cover: /images/posts-cover.jpg
 ---

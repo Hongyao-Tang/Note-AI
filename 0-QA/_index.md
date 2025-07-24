@@ -1,6 +1,6 @@
 ---
-title: "AI Optimization"
+title: "Interviee Questions List"
 layout: "list"
-weight: 3
+weight: 1
 #cover: /images/posts-cover.jpg
 ---
